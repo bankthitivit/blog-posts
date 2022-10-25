@@ -79,7 +79,7 @@ postRouter.post("/", async (req, res) => {
     updated_at: new Date(),
   };
   await pool.query(
-    `insert into posts(post_id, user_id, category_id, post_vote_id, title, content, created_at, updated_at) values($1,$2,$3,$4,$5,$6,$7,$8)`,
+    `insert into posts(post_id, user_id, category_id, post_vote_id, title, content, url, created_at, updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
     [
       51,
       newPost.user_id,
@@ -87,6 +87,7 @@ postRouter.post("/", async (req, res) => {
       newPost.post_vote_id,
       newPost.title,
       newPost.content,
+      newPost.url,
       newPost.created_at,
       newPost.updated_at,
     ]
@@ -96,24 +97,53 @@ postRouter.post("/", async (req, res) => {
   });
 });
 
+postRouter.post("/:postId", async (req, res) => {
+  const postId = req.params.postId;
+  const newVote = {
+    ...req.body,
+  };
+  await pool.query(
+    `insert into post_votes(post_vote_id, post_id, user_id, type) values($1,$2,$3,$4)`,
+    [12, postId, newVote.user_id, newVote.type]
+  );
+  return res.json({
+    message: "Post has been voted.",
+  });
+});
+
 postRouter.post("/:postId/comments", async (req, res) => {
   const newPost = {
     ...req.body,
     created_at: new Date(),
   };
   await pool.query(
-    `insert into comments(comment_id, user_id, post_id, comment_vote_id, content, created_at) values($1,$2,$3,$4,$5,$6)`,
+    `insert into comments(comment_id, user_id, post_id, comment_vote_id, content, url, created_at) values($1,$2,$3,$4,$5,$6,$7)`,
     [
       51,
       newPost.user_id,
       newPost.category_id,
       newPost.comment_vote_id,
       newPost.content,
+      newPost.url,
       newPost.created_at,
     ]
   );
   return res.json({
     message: "Comment has been created.",
+  });
+});
+
+postRouter.post("/:postId/comments/:commentId", async (req, res) => {
+  const commentId = req.params.commentId;
+  const newVote = {
+    ...req.body,
+  };
+  await pool.query(
+    `insert into comment_votes(comment_vote_id, comment_id, user_id, type) values($1,$2,$3,$4)`,
+    [37, commentId, newVote.user_id, newVote.type]
+  );
+  return res.json({
+    message: "Comment has been voted.",
   });
 });
 
@@ -125,13 +155,14 @@ postRouter.put("/:postId", async (req, res) => {
   const postId = req.params.postId;
 
   await pool.query(
-    `update posts set user_id=$1, category_id=$2, post_vote_id=$3, title=$4, content=$5, updated_at=$6 where post_id=$7`,
+    `update posts set user_id=$1, category_id=$2, post_vote_id=$3, title=$4, content=$5, url=$6, updated_at=$7 where post_id=$8`,
     [
       updatedPost.user_id,
       updatedPost.category_id,
       updatedPost.post_vote_id,
       updatedPost.title,
       updatedPost.content,
+      updatedPost.url,
       updatedPost.updated_at,
       postId,
     ]
