@@ -78,12 +78,19 @@ postRouter.post("/", async (req, res) => {
     created_at: new Date(),
     updated_at: new Date(),
   };
+  const findCategoryId = await pool.query(
+    `select * from categories where name ilike $1`,
+    [newPost.category_name]
+  );
+  const category_id = findCategoryId.row[0].category_id;
+
   await pool.query(
-    `insert into posts(post_id, user_id, category_id, post_vote_id, title, content, url, created_at, updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+    `
+    insert into posts(post_id, user_id, category_id, post_vote_id, title, content, url, created_at, updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
     [
       51,
       newPost.user_id,
-      newPost.category_id,
+      category_id,
       newPost.post_vote_id,
       newPost.title,
       newPost.content,
